@@ -1,92 +1,166 @@
-const express =require('express')
-const mysql=require('mysql')
+const express =require('express');
+const connection=require('./Database/DBconfig.js');//exported from seperate file.
+require('dotenv').config();
 
-const app=express()
+const app=express();
+const PORT=process.env.PORT || 3000;
 
-//Create DB connection
-//Create Database
-//Create Table
-//Insert Record
+//Home Route
+app.get("/",(req,res)=>{
+    res.send("<h1>Hello There! </h1>")
+})
 
-//Display Record => SELECT * from studentInfo
-
-const connection = mysql.createConnection({
-    host: 'localhost',
-    user:'root',
-    password:'',
-    // database:'University'
-});
-
-connection.connect((err)=>{
-    if(err) throw err;
-    console.log("Connected successfully to MySql server")
-});
-
-//db-create => create Database
-
+// Route to create db.
 app.get("/db-create", (req,res)=>{
-    const dbquery="CREATE DATABASE IF NOT EXISTS University";
+    const dbquery="CREATE DATABASE IF NOT EXISTS dbUniversity";
 
     connection.query(dbquery,(err,result)=>{
         if(err) throw err;
         console.log("Database created successfully",result)
     })
+    res.send("<h1>Route to create db.</h1>")
 });
 
 
-//db-table => Create Table in University DB
-app.get("/db-table", (req,res)=>{
-    const dbtable=`CREATE TABLE IF NOT EXISTS facultyInfo(
+//Route to create Table.
+app.get("/db-create-table", (req,res)=>{
+
+
+    //studentinfo table
+    const studentinfo=`CREATE TABLE IF NOT EXISTS tblStudentInfo(
         studentID varchar(10) NOT NULL,
         fname varchar(50) NOT NULL,
         lname varchar(50) NOT NULL,
         mobileNo varchar(15) NOT NULL,
         PRIMARY KEY (studentID))`
 
+        const facultyinfo=`CREATE TABLE IF NOT EXISTS tblFacultyInfo(
+            facultyID varchar(10) NOT NULL,
+            fname varchar(50) NOT NULL,
+            lname varchar(50) NOT NULL,
+            mobileNo varchar(15) NOT NULL,
+            PRIMARY KEY (facultyID))`
+
         // SHOW DATABASES => List the available DB from MySql server
         
-    connection.query("USE University",(err,result)=>{ // "Select Database"
+    connection.query("USE dbUniversity",(err,result)=>{ // "Select Database"
         if(err) throw err;
-        connection.query(dbtable,(err,result)=>{
+        connection.query(studentinfo,(err,result)=>{
             if(err) throw err;
-            console.log("Table created successfully",result)
+            console.log("Student Table created successfully",result)
+        });
+
+        connection.query(facultyinfo,(err,result)=>{
+            if(err) throw err;
+            console.log("Faculty Table created successfully",result)
         });
     });
+    res.send("<h1>Route to create Table. </h1>")
 });
 
-//db-insert => Insert Record into studentInfo Table
+//Route to insert data
 
 app.get("/db-insert", (req,res)=>{
-    const dbInsert=`INSERT INTO facultyInfo
+    const dbInsert1=`INSERT INTO tblStudentInfo
     (studentID,fname,lname,mobileNo)
-    VALUES ('102','Mrugendra','Rahevar','123456789'),
-    ('103','Martin','Parmar','123456789'),
-    ('104','Vraj','Shah','123456789')`;
+    VALUES ('102','Jaydipsinh','Padhiyar','123456789'),
+    ('103','Karan','Goswami','123456789'),
+    ('104','Bhautik','Sudani','123456789'),
+    ('105','Margiv','Amin','123456789')`;
 
-    connection.query("USE University",(err,result)=>{
+    const dbInsert2=`INSERT INTO tblFacultyInfo
+    (facultyID,fname,lname,mobileNo)
+    VALUES ('201','Mrugendra','Rahevar','123456789'),
+    ('202','Martin','Parmar','123456789')`;
+
+    connection.query("USE dbUniversity",(err,result)=>{
         if(err) throw err;
-    connection.query(dbInsert,(err,result)=>{
-        if(err) throw err;
-        console.log(`Total affected ROWS: ${result['affectedRows']}`)
-    })
+
+        connection.query(dbInsert1,(err,result)=>{
+            if(err) throw err;
+            console.log(`Total affected ROWS in tblStudentInfo: ${result['affectedRows']}`)
+            })
+
+        connection.query(dbInsert2,(err,result)=>{
+            if(err) throw err;
+            console.log(`Total affected ROWS in tblFacultyInfo: ${result['affectedRows']}`)
+            })
+    });
+    res.send("<h1>Route to insert data </h1>")
 });
-});
 
+//Route to update Data.
+app.get("/db-update",(req,res)=>{
+    const db1=`UPDATE tblStudentInfo SET fname = 'Dipen' WHERE studentID = '102'`;
+    const db2=`UPDATE tblFacultyInfo SET mobileNo = '987654321' WHERE facultyID = '201'`;
 
-app.get("/db-display", (req,res)=>{
-    const dbInsert=`SELECT * from facultyInfo`;
-
-    connection.query("USE University",(err,result)=>{
+    connection.query("USE dbUniversity",(err,result)=>{
         if(err) throw err;
-    connection.query(dbInsert,(err,result)=>{
-        if(err) throw err;
-        
-        console.log("Inserted Data is");
-        console.log(result);
+            connection.query(db1,(err,result)=>{
+                if(err) throw err;
+                
+                console.log(`Total affected ROWS in tblStudentInfo: ${result['affectedRows']}`)
+                console.log(result);
+            })
+
+            connection.query(db2,(err,result)=>{
+                if(err) throw err;
+                
+                console.log(`Total affected ROWS in tblFacultyInfo: ${result['affectedRows']}`)
+                console.log(result);
+            })
     })
+    res.send("<h1>Route to update Data. </h1>")
 })
+
+//Route to display data
+app.get("/db-display", (req,res)=>{
+    const db1=`SELECT * from tblStudentInfo`;
+    const db2=`SELECT * from tblFacultyInfo`;
+
+    connection.query("USE dbUniversity",(err,result)=>{
+        if(err) throw err;
+            connection.query(db1,(err,result)=>{
+                if(err) throw err;
+                
+                console.log("Inserted Data in tblStudentInfo is:\n");
+                console.log(result);
+            })
+
+            connection.query(db2,(err,result)=>{
+                if(err) throw err;
+                
+                console.log("Inserted Data in tblFacultyInfo is:\n");
+                console.log(result);
+            })
+    })
+    res.send("<h1>Route to display data </h1>")
 });
 
-app.listen(3000,()=>{
-    console.log("Server is running on port number 3000")
+//Route to Delete Data
+app.get("/db-delete",(req,res)=>{
+    const db1=`DELETE FROM tblStudentInfo WHERE studentID = '102'`;
+    const db2=`DELETE FROM tblFacultyInfo WHERE facultyID = '201'`;
+
+    connection.query("USE dbUniversity",(err,result)=>{
+        if(err) throw err;
+            connection.query(db1,(err,result)=>{
+                if(err) throw err;
+                
+                console.log(`Total affected ROWS in tblStudentInfo: ${result['affectedRows']}`)
+                console.log(result);
+            })
+
+            connection.query(db2,(err,result)=>{
+                if(err) throw err;
+                
+                console.log(`Total affected ROWS in tblFacultyInfo: ${result['affectedRows']}`)
+                console.log(result);
+            })
+    })
+    res.send("<h1>Route to Delete Data </h1>")
+})
+
+app.listen(PORT,()=>{
+    console.log(`Server is running on port number ${PORT}`)
 })
